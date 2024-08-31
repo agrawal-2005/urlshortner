@@ -24,8 +24,9 @@ export const handleUserLogin = async (req, res) => {
     });
   }
 
-  const sessionId = uuidv4();
-  setUser(sessionId, user);
-  res.cookie("uid", sessionId);
-  return res.redirect("/");
+  const token = setUser(user);
+  // res.cookie("uid", token);
+  // return res.redirect("/");
+
+  return res.json(token);
 };
