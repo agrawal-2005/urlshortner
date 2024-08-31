@@ -6,16 +6,20 @@ export const handleGenerateNewShortURL = async (req, res) => {
     if (!body.url) return res.status(400).json({ error: 'URL is required' });
 
     const shortID = nanoid(8);
+    // console.log('Generated ShortID:', shortID);
+
     try {
-        await URL.create({
+        const newUrl = await URL.create({
             shortId: shortID,
             redirectURL: body.url,
-            visitHistory: []
+            visitHistory: [],
+            createdBy: req.user ? req.user._id : null
         });
 
-        // Render the home page with the generated shortID
+        // console.log('New URL Created:', newUrl);
         return res.render('home', { id: shortID });
     } catch (err) {
+        console.error('Error Creating Short URL:', err);
         return res.status(500).json({ error: 'Failed to create short URL' });
     }
 }

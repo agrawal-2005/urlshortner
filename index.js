@@ -4,6 +4,9 @@ import path from "path";
 import staticRouter from "./routes/staticRouter.js";
 import connectToMongoDB from "./connect.js";
 import urlRoute from "./routes/url.js";
+import userRoute from "./routes/user.js";
+import cookieParser from "cookie-parser";
+import { restrictToLoggedinUserOnly, isLogin } from "./middlewares/auth.js";
 
 const app = express();
 const PORT = 8081;
@@ -17,9 +20,11 @@ app.set("views", path.resolve("./views"));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
-app.use("/url", urlRoute);
-app.use("/", staticRouter); // Adjusted route to '/' for staticRouter
+app.use("/url", restrictToLoggedinUserOnly, urlRoute);
+app.use("/user", userRoute);
+app.use("/", isLogin, staticRouter); // For serving static pages
 
 app.get("/url/:shortId", async (req, res) => {
   const shortId = req.params.shortId;
@@ -30,7 +35,7 @@ app.get("/url/:shortId", async (req, res) => {
       { $push: { visitHistory: { timestamp: Date.now() } } },
       { new: true }
     );
-    
+
     if (!entry) {
       return res.status(404).send("URL not found");
     }
