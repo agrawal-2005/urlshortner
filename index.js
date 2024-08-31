@@ -6,7 +6,7 @@ import connectToMongoDB from "./connect.js";
 import urlRoute from "./routes/url.js";
 import userRoute from "./routes/user.js";
 import cookieParser from "cookie-parser";
-import { restrictToLoggedinUserOnly, isLogin } from "./middlewares/auth.js";
+import { checkForAuthentication, restrictTo } from "./middlewares/auth.js";
 
 const app = express();
 const PORT = 8081;
@@ -21,10 +21,11 @@ app.set("views", path.resolve("./views"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(checkForAuthentication);
 
-app.use("/url", restrictToLoggedinUserOnly, urlRoute);
+app.use("/url", restrictTo(["NORMAL", "ADMIN"]), urlRoute);
 app.use("/user", userRoute);
-app.use("/", isLogin, staticRouter); // For serving static pages
+app.use("/", staticRouter); // For serving static pages
 
 app.get("/url/:shortId", async (req, res) => {
   const shortId = req.params.shortId;
